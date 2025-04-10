@@ -44,6 +44,10 @@ python api.py
 ### APIエンドポイント
 
 1. ドキュメントの追加:
+
+open-web-ui/JCS2025_Iwamoto_chunks_highlighted.jsonl をアップロード
+
+または
 ```bash
 curl -X POST "http://localhost:8000/add_document" \
      -H "Content-Type: multipart/form-data" \
@@ -51,6 +55,10 @@ curl -X POST "http://localhost:8000/add_document" \
 ```
 
 2. 質問の実行:
+
+GUIでテキスト入力&送信
+
+または
 ```bash
 curl -X POST "http://localhost:8000/query" \
      -H "Content-Type: application/json" \
