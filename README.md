@@ -12,7 +12,7 @@
 
 ## 必要条件
 
-- Python 3.8以上
+- Python 3.11.12
 - Ollama
 - 必要なPythonパッケージ
 
