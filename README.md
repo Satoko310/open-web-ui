@@ -98,8 +98,8 @@ curl -X POST "http://localhost:8000/query" \
 ### 検索システムの仕組み
 
 1. **ハイブリッド検索**:
-   - ベクトル検索（Sentence Transformers）
-   - BM25検索（Okapi BM25）
+   - 意味ベースのベクトル検索（Sentence Transformers）
+   - キーワードベースのBM25検索（Okapi BM25）
    - スコアの組み合わせによるランキング
 
 2. **回答生成**:
@@ -114,7 +114,7 @@ curl -X POST "http://localhost:8000/query" \
 - `model_name`: 使用するOllamaモデル（デフォルト: "gemma3:12b"）
 - `data_dir`: ナレッジベースのディレクトリ（デフォルト: "knowledge_base"）
 - `top_k`: 検索結果の数（デフォルト: 3）
-- `alpha`: ベクトル検索とBM25のバランス（デフォルト: 0.5）
+- `alpha`: ベクトル検索とBM25のバランス（デフォルト: 0.5）値が大きいほどベクトル検索を重視する。
 
 ## 注意事項
 

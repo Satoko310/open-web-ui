@@ -5,57 +5,48 @@ import ollama
 import os
 import shutil
 import json
-from typing import List, Dict
-import re
 from janome.tokenizer import Tokenizer
-import nltk
 
-# NLTKのデータをダウンロード
-nltk.download('punkt')
 
 class HybridRetriever:
     """ベクトル検索とBM25を組み合わせたハイブリッド検索"""
-    
-    def __init__(self, texts: List[str], metadata: List[Dict] = None):
+    def __init__(self, texts: list[str], metadata: list[dict] = list()):
         self.tokenizer = Tokenizer()
         self.texts = texts
         self.metadata = metadata if metadata else [{}] * len(texts)
-        
-        # テキストの形態素解析
+
+        # Janomeを用いたテキストの形態素解析
         self.tokenized_texts = []
         for text in self.texts:
             tokens = self.tokenizer.tokenize(text)
-            words = [token.base_form for token in tokens 
-                    if token.part_of_speech.split(',')[0] in ['名詞', '動詞', '形容詞', '副詞']]
+            words = [token.base_form for token in tokens if token.part_of_speech.split(',')[0] in ['名詞', '動詞', '形容詞', '副詞']]
             self.tokenized_texts.append(words)
-        
+
         # BM25の初期化
         self.bm25 = BM25Okapi(self.tokenized_texts)
-        
+
         # Embedding modelの初期化
         self.model = SentenceTransformer('intfloat/multilingual-e5-base')
         self.embeddings = self.model.encode(texts)
 
-    def retrieve(self, query: str, top_k: int = 3, alpha: float = 0.5) -> List[Dict]:
-        # クエリの形態素解析
-        query_tokens = self.tokenizer.tokenize(query)
-        query_words = [token.base_form for token in query_tokens 
-                      if token.part_of_speech.split(',')[0] in ['名詞', '動詞', '形容詞', '副詞']]
-        
-        # BM25スコアの計算
-        bm25_scores = self.bm25.get_scores(query_words)
-        max_bm25_score = max(bm25_scores) if any(bm25_scores) else 1.0
-        normalized_bm25_scores = bm25_scores / max_bm25_score if max_bm25_score > 0 else bm25_scores
-        
-        # ベクターの類似度スコアの計算
+    def retrieve(self, query: str, top_k: int = 1, alpha: float = 0.5) -> list[dict]:
+        # ベクトルの類似度スコアの計算
         query_embedding = self.model.encode(query)
         vector_scores = np.dot(self.embeddings, query_embedding)
         max_vector_score = max(vector_scores) if any(vector_scores) else 1.0
         normalized_vector_scores = vector_scores / max_vector_score if max_vector_score > 0 else vector_scores
-        
+
+        # BM25スコアの計算
+        query_tokens = self.tokenizer.tokenize(query)
+        query_words = [token.base_form for token in query_tokens
+                       if token.part_of_speech.split(',')[0] in ['名詞', '動詞', '形容詞', '副詞']]
+        bm25_scores = self.bm25.get_scores(query_words)
+        max_bm25_score = max(bm25_scores) if any(bm25_scores) else 1.0
+        normalized_bm25_scores = bm25_scores / max_bm25_score if max_bm25_score > 0 else bm25_scores
+
         # スコアの組み合わせ
         combined_scores = alpha * normalized_vector_scores + (1 - alpha) * normalized_bm25_scores
-        
+
         # 上位k件の結果を返す（スコアの高い順）
         top_indices = np.argsort(combined_scores)[-top_k:][::-1]
         results = []
@@ -68,10 +59,11 @@ class HybridRetriever:
                 **self.metadata[idx]
             }
             results.append(result)
-        
+
         # スコアの高い順にソート
         results.sort(key=lambda x: x['score'], reverse=True)
         return results
+
 
 class RAGSystem:
     def __init__(self, data_dir="knowledge_base", model_name="mistral"):
@@ -79,12 +71,12 @@ class RAGSystem:
         os.makedirs(data_dir, exist_ok=True)
         self.data_dir = data_dir
         self.model_name = model_name
-        
+
         # 検索システムの初期化
         self.documents = []
         self.retriever = None
         self.initialize_system()
-    
+
     def initialize_system(self):
         """システムの初期化"""
         if os.path.exists(self.data_dir) and any(os.scandir(self.data_dir)):
@@ -100,7 +92,7 @@ class RAGSystem:
                                 self.documents.append(doc)
                             except json.JSONDecodeError:
                                 continue
-            
+
             # 検索システムの初期化
             if self.documents:
                 self.retriever = HybridRetriever(
@@ -114,16 +106,15 @@ class RAGSystem:
                         for doc in self.documents
                     ]
                 )
-    
+
     def add_document(self, file_path):
         """新しい文書をナレッジベースに追加"""
         filename = os.path.basename(file_path)
         dest_path = os.path.join(self.data_dir, filename)
         shutil.copy2(file_path, dest_path)
-        
         # システムを再初期化
         self.initialize_system()
-    
+
     def query(self, question: str) -> dict:
         """質問に対する回答を生成"""
         if not self.documents:
@@ -131,7 +122,7 @@ class RAGSystem:
                 "answer": "エラー: ナレッジベースが空です。先にドキュメントを追加してください。",
                 "contexts": []
             }
-        
+
         try:
             # コンテキストの取得
             retrieved_contexts = self.retriever.retrieve(question, top_k=3)
@@ -156,52 +147,44 @@ class RAGSystem:
                     f"[スコア: {item['score']:.4f}]\n"
                     f"{item['text']}\n"
                 )
-            
-            # プロンプトの構築
-            prompt_template = """以下のコンテキストに基づいて、質問に答えてください。
-特に「重要度: 非常に関連性が高い」とマークされた部分を優先的に参照してください。
-
-コンテキスト:
-{}
-
-質問:
-{}
-
-回答の際の注意点：
-1. 「非常に関連性が高い」とマークされた情報を優先的に使用してください
-2. 情報の信頼性は重要度の順に高くなっています
-3. 矛盾する情報がある場合は、重要度の高い方を優先してください
-4. 回答の根拠となった出典を明記してください
-
-回答:"""
-            
             # プロンプトの組み立て
             context_text = '---\n'.join(context_parts)
-            prompt = prompt_template.format(context_text, question)
-            
+
             # Ollamaで回答を生成
-            response = ollama.generate(
+            response = ollama.chat(
                 model=self.model_name,
-                prompt=prompt,
-                stream=False
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "あなたは学校心臓検診に関する文献に基づいて質問に答える、医学的に正確かつ丁寧な医療アシスタントです。\n"
+                            "以下のルールに従って回答してください：\n"
+                            "1. 『重要度: 非常に関連性が高い』の情報を最優先して参照すること。\n"
+                            "2. 抜粋をそのまま使用せず、読者にわかりやすい自然な日本語に要約・言い換えること。\n"
+                            "3. 回答の最後までしっかりと出力し、途中で途切れないようにすること。\n"
+                            "4. 使用した情報の出典（章・出典名）を明記すること。\n"
+                            "5. 医療専門家に向けた内容として、用語の正確性と論理性を重視すること。"
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "以下のコンテキストは、「学校心臓検診」に関する資料から抽出したテキストです。\n"
+                            "『重要度: 非常に関連性が高い』のものを最優先して使用してください。\n\n"
+                            f"コンテキスト:\n{context_text}\n\n質問:\n{question}"
+                        )
+                    }
+                ],
+                stream=False,
             )
-            
+
             return {
                 "answer": response['response'],
                 "contexts": contexts_with_scores
             }
-            
+
         except Exception as e:
             return {
                 "answer": f"エラー: 質問の処理中にエラーが発生しました - {str(e)}",
                 "contexts": []
             }
-
-# 使用例
-if __name__ == "__main__":
-    rag = RAGSystem()
-    # ドキュメントを追加する例
-    # rag.add_document("path/to/your/document.pdf")
-    # 質問する例
-    # response = rag.query("あなたの質問をここに")
-    # print(response) 
