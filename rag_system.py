@@ -179,7 +179,7 @@ class RAGSystem:
             )
 
             return {
-                "answer": response['response'],
+                "answer": response.message.content,
                 "contexts": contexts_with_scores
             }
 
