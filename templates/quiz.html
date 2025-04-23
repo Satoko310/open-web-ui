@@ -106,11 +106,13 @@
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                if (timeLeft <= 10) {
+                if (timeLeft <= 30) {
                     timerElement.style.color = 'red';
                 }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    // タイマーが0になったときは、選択肢を選んでいなくても次の問題に進める
+                    selectedChoice = null;
                     submitAnswer();
                 }
                 timeLeft--;
