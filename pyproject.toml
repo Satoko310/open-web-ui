@@ -1,0 +1,22 @@
+[project]
+name = "open-web-ui"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13.3"
+dependencies = [
+    "fastapi>=0.104.1",
+    "janome==0.5.0",
+    "llama-index-core>=0.12.30",
+    "llama-index-llms-ollama>=0.5.4",
+    "numpy>=2.2.4",
+    "ollama==0.4.7",
+    "pydantic>=2.11.3",
+    "python-dotenv>=1.1.0",
+    "python-multipart>=0.0.6",
+    "rank-bm25==0.2.2",
+    "sentence-transformers==4.0.2",
+    "torch>=2.6.0",
+    "transformers>=4.51.1",
+    "uvicorn>=0.24.0",
+]
