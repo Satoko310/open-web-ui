@@ -59,6 +59,17 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        .timer {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 10px;
+            text-align: right;
+            border: 2px solid #666;
+            padding: 5px;
+            border-radius: 5px;
+            display: inline-block;
+            width: auto;
+        }
     </style>
 </head>
 <body>
@@ -68,11 +79,33 @@
         <textarea class="answer-area" id="answer" placeholder="解答を入力してください" oninput="updateCharCount()"></textarea>
         <div class="char-count">文字数: <span id="charCount">0</span></div>
     </div>
+    <div class="timer" id="timer" style="float: right;">5:00</div>
     <button class="next-button" onclick="submitAnswer()" id="nextButton">次へ</button>
 
     <script>
         let startTime = new Date().getTime();
-        
+        let timerInterval;
+
+        function startTimer() {
+            let timeLeft = 300; // 5 minutes in seconds
+            const timerElement = document.getElementById('timer');
+            timerInterval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                if (timeLeft <= 10) {
+                    timerElement.style.color = 'red';
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitAnswer();
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        startTimer();
+
         function updateCharCount() {
             const answer = document.getElementById('answer').value;
             const charCount = document.getElementById('charCount');
