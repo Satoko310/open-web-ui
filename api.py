@@ -28,7 +28,7 @@ templates = Jinja2Templates(directory="templates")
 
 # RAGシステムのインスタンスを作成
 try:
-    rag = RAGSystem(model_name="gemma3:1b")
+    rag = RAGSystem(model_name="gemma3:27b")
     logger.info("RAGSystem initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize RAGSystem: {e}")
@@ -84,4 +84,4 @@ async def query(question: Question):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=3000)
