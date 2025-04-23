@@ -124,6 +124,10 @@
                 return;
             }
 
+            const responseDiv = document.getElementById('response');
+
+            responseDiv.textContent = '生成中...';
+
             try {
                 const response = await fetch('/query', {
                     method: 'POST',
