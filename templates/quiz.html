@@ -70,7 +70,7 @@
 </head>
 <body>
     <div class="question">
-        <div class="question-number">問題{{ question_number }}/{{ total_questions }}</div>
+        <div class="question-number">問題{{ question.id }}</div>
         <div class="question-text">{{ question.question }}</div>
         <div class="choices">
             {% for choice in question.choices %}

@@ -3,11 +3,14 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Set
 import csv
 import random
 import time
 from datetime import datetime
+import argparse
+import json
+import os
 
 
 app = FastAPI()
@@ -19,6 +22,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 current_questions: List[Dict] = []
 current_question_index: int = 0
 start_time: float = 0.0
+used_question_ids: Set[str] = set()
 
 
 def load_questions() -> List[Dict]:
@@ -66,6 +70,26 @@ def save_answer(question: Dict, answer: str, time_spent: int) -> None:
         print(f"Error saving answer: {e}")
 
 
+def save_used_questions() -> None:
+    """使用した問題IDを保存"""
+    try:
+        with open('used_questions.json', 'w', encoding='utf-8') as f:
+            json.dump(list(used_question_ids), f)
+    except Exception as e:
+        print(f"Error saving used questions: {e}")
+
+
+def load_used_questions() -> Set[str]:
+    """使用した問題IDを読み込む"""
+    try:
+        if os.path.exists('used_questions.json'):
+            with open('used_questions.json', 'r', encoding='utf-8') as f:
+                return set(json.load(f))
+    except Exception as e:
+        print(f"Error loading used questions: {e}")
+    return set()
+
+
 class AnswerSubmission(BaseModel):
     """回答提出用のモデル"""
     answer: str
@@ -75,18 +99,29 @@ class AnswerSubmission(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     """トップページ表示 - 最初の問題を表示"""
-    global current_questions, current_question_index, start_time
+    global current_questions, current_question_index, start_time, used_question_ids
     all_questions = load_questions()
-    current_questions = random.sample(all_questions, min(5, len(all_questions)))
+
+    # 未使用の問題のみをフィルタリング
+    available_questions = [q for q in all_questions if q['id'] not in used_question_ids]
+
+    # 未使用の問題が5問未満の場合は、すべての問題から選択
+    if len(available_questions) < 5:
+        available_questions = all_questions
+
+    current_questions = random.sample(available_questions, min(5, len(available_questions)))
     current_question_index = 0
     start_time = time.time()
+
+    # 選択した問題のIDを記録
+    used_question_ids.update(q['id'] for q in current_questions)
+    save_used_questions()
+
     return templates.TemplateResponse(
         "quiz.html",
         {
             "request": request,
             "question": current_questions[current_question_index],
-            "question_number": current_question_index + 1,
-            "total_questions": len(current_questions)
         }
     )
 
@@ -111,8 +146,6 @@ async def next_question(request: Request):
         {
             "request": request,
             "question": current_questions[current_question_index],
-            "question_number": current_question_index + 1,
-            "total_questions": len(current_questions)
         }
     )
 
@@ -123,6 +156,22 @@ async def finish(request: Request):
     return templates.TemplateResponse("finish.html", {"request": request})
 
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description='問題出題システム')
+    parser.add_argument('--reset', action='store_true', help='使用済み問題の履歴をリセット')
+    args = parser.parse_args()
+
+    global used_question_ids
+    if args.reset:
+        used_question_ids = set()
+        if os.path.exists('used_questions.json'):
+            os.remove('used_questions.json')
+    else:
+        used_question_ids = load_used_questions()
+
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8080)
+
+
+if __name__ == "__main__":
+    main()
