@@ -98,25 +98,27 @@
         let startTime = new Date().getTime();
         let selectedChoice = null;
         let timerInterval;
+        const duration = 180; // 3 minutes in seconds
 
         function startTimer() {
-            let timeLeft = 180; // 3 minutes in seconds
             const timerElement = document.getElementById('timer');
             timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const timeLeft = duration - elapsed;
+
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                if (timeLeft <= 30) {
+                if (timeLeft <= 20) {
                     timerElement.style.color = 'red';
                 }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     // タイマーが0になったときは、選択肢を選んでいなくても次の問題に進める
-                    selectedChoice = null;
+                    selectedChoice = "";
                     submitAnswer();
                 }
-                timeLeft--;
-            }, 1000);
+            }, 200);
         }
 
         startTimer();

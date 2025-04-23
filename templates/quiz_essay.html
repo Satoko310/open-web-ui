@@ -85,11 +85,14 @@
     <script>
         let startTime = new Date().getTime();
         let timerInterval;
+        const duration = 300; // 5 minutes in seconds
 
         function startTimer() {
-            let timeLeft = 300; // 5 minutes in seconds
             const timerElement = document.getElementById('timer');
             timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const timeLeft = duration - elapsed;
+
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
@@ -100,8 +103,7 @@
                     clearInterval(timerInterval);
                     submitAnswer();
                 }
-                timeLeft--;
-            }, 1000);
+            }, 200);
         }
 
         startTimer();
