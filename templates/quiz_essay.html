@@ -59,10 +59,17 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        .instruction {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="question">
+        <div class="instruction">100文字程度で答えなさい。</div>
         <div class="question-number">問題{{ question.id }}</div>
         <div class="question-text">{{ question.question }}</div>
         <textarea class="answer-area" id="answer" placeholder="解答を入力してください" oninput="updateCharCount()"></textarea>
