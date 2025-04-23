@@ -23,6 +23,7 @@ current_questions: List[Dict] = []
 current_question_index: int = 0
 start_time: float = 0.0
 used_question_ids: Set[str] = set()
+is_practice_mode: bool = False  # 練習モードかどうかを示すフラグ
 
 
 def load_questions() -> List[Dict]:
@@ -92,8 +93,23 @@ class AnswerSubmission(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    """トップページ表示 - 最初の問題を表示"""
-    global current_questions, current_question_index, start_time, used_question_ids
+    """トップページ表示 - 練習問題を表示"""
+    global is_practice_mode
+    is_practice_mode = True
+    return templates.TemplateResponse(
+        "quiz_essay.html",
+        {
+            "request": request,
+            "question": {"id": "0", "question": "これは練習問題です"}
+        }
+    )
+
+
+@app.get("/start", response_class=HTMLResponse)
+async def start(request: Request):
+    """本番問題開始"""
+    global current_questions, current_question_index, start_time, used_question_ids, is_practice_mode
+    is_practice_mode = False
     all_questions = load_questions()
 
     # 未使用の問題のみをフィルタリング
