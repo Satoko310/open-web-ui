@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記述式問題</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .question-number {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .question-text {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .answer-area {
+            width: 100%;
+            min-height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1.1em;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        .char-count {
+            color: #666;
+            font-size: 0.9em;
+            text-align: right;
+            margin-top: 5px;
+        }
+        .next-button {
+            float: right;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .next-button:hover {
+            background-color: #45a049;
+        }
+        .next-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="question">
+        <div class="question-number">問題{{ question.id }}</div>
+        <div class="question-text">{{ question.question }}</div>
+        <textarea class="answer-area" id="answer" placeholder="解答を入力してください" oninput="updateCharCount()"></textarea>
+        <div class="char-count">文字数: <span id="charCount">0</span></div>
+    </div>
+    <button class="next-button" onclick="submitAnswer()" id="nextButton">次へ</button>
+
+    <script>
+        let startTime = new Date().getTime();
+        
+        function updateCharCount() {
+            const answer = document.getElementById('answer').value;
+            const charCount = document.getElementById('charCount');
+            charCount.textContent = answer.length;
+        }
+        
+        function submitAnswer() {
+            const answer = document.getElementById('answer').value;
+            const endTime = new Date().getTime();
+            const timeSpent = endTime - startTime;
+            
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    answer: answer,
+                    timeSpent: timeSpent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.finished) {
+                        window.location.href = '/finish';
+                    } else {
+                        window.location.href = '/next';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
