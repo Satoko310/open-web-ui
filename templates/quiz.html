@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>問題集</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .question-number {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .question-text {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .choices {
+            margin-bottom: 20px;
+        }
+        .choice {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .choice:hover {
+            background-color: #f5f5f5;
+        }
+        .choice.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .choice-label {
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 30px;
+        }
+        .next-button {
+            float: right;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .next-button:hover {
+            background-color: #45a049;
+        }
+        .next-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="question">
+        <div class="question-number">問題{{ question_number }}/{{ total_questions }}</div>
+        <div class="question-text">{{ question.question }}</div>
+        <div class="choices">
+            {% for choice in question.choices %}
+            <div class="choice" onclick="selectChoice(this, '{{ choice }}')">
+                <span class="choice-label">{{ loop.index0 | string | replace('0', 'A') | replace('1', 'B') | replace('2', 'C') | replace('3', 'D') }}</span>
+                <span class="choice-text">{{ choice }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <button class="next-button" onclick="submitAnswer()" id="nextButton" disabled>次へ</button>
+
+    <script>
+        let startTime = new Date().getTime();
+        let selectedChoice = null;
+        
+        function selectChoice(element, choice) {
+            // 以前の選択を解除
+            document.querySelectorAll('.choice').forEach(el => {
+                el.classList.remove('selected');
+            });
+            // 新しい選択を適用
+            element.classList.add('selected');
+            selectedChoice = choice;
+            document.getElementById('nextButton').disabled = false;
+        }
+        
+        function submitAnswer() {
+            const endTime = new Date().getTime();
+            const timeSpent = endTime - startTime;
+            
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    answer: selectedChoice,
+                    timeSpent: timeSpent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.finished) {
+                        window.location.href = '/finish';
+                    } else {
+                        window.location.href = '/next';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
