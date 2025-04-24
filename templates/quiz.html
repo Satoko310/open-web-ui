@@ -115,7 +115,9 @@
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     // タイマーが0になったときは、選択肢を選んでいなくても次の問題に進める
-                    selectedChoice = "";
+                    if (selectedChoice === null) {
+                        selectedChoice = "";
+                    }
                     submitAnswer();
                 }
             }, 200);
