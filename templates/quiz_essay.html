@@ -145,6 +145,12 @@
                 }
             });
         }
+        // 戻るボタンの使用禁止
+        window.addEventListener("popstate", function (e) {
+            history.pushState(null, null, null);
+            return;
+        });
+
     </script>
 </body>
 </html> 
