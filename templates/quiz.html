@@ -168,10 +168,10 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.practice && data.practiceQuestionNumber === 1) {
+                if (data.practice && data.practiceQuestionNumber === 0) {
                         window.location.href = '/next';
                 }
-                else if (data.practice && data.practiceQuestionNumber === 2) {
+                else if (data.practice && data.practiceQuestionNumber === 1) {
                     if (confirm("始めてよろしいですか？")) {
                         window.location.href = '/start';
                     }

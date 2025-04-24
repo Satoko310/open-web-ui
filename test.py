@@ -166,7 +166,6 @@ async def submit(submission: AnswerSubmission):
     """回答を受け取ってCSVに保存"""
     global current_question_index, practice_question_count
     if is_practice_mode:  # 練習モードの場合は保存しない
-        practice_question_count += 1
         return JSONResponse({
             "practice": True,
             "practiceQuestionNumber": practice_question_count
@@ -183,6 +182,7 @@ async def submit(submission: AnswerSubmission):
 async def next_question(request: Request):
     """次の問題へリダイレクト"""
     global practice_question_count
+    practice_question_count += 1
     if is_practice_mode:
         return templates.TemplateResponse(
             "quiz.html",
