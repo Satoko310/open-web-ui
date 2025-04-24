@@ -113,8 +113,24 @@
             const charCount = document.getElementById('charCount');
             charCount.textContent = answer.length;
         }
-        
+
+        // 戻るボタンの使用禁止
+        window.addEventListener("popstate", function (e) {
+            history.pushState(null, null, null);
+            return;
+        });
+
+        // タブ・ウィンドウを閉じるときの警告
+        let isNavigating = false;
+        window.addEventListener('beforeunload', function (e) {
+            if (!isNavigating) {
+                e.preventDefault();
+                e.returnValue = ''; // Chromeなどではこれが必要
+            }
+        });
+
         function submitAnswer() {
+            isNavigating = true;
             const answer = document.getElementById('answer').value;
             const endTime = new Date().getTime();
             const timeSpent = endTime - startTime;
@@ -145,11 +161,6 @@
                 }
             });
         }
-        // 戻るボタンの使用禁止
-        window.addEventListener("popstate", function (e) {
-            history.pushState(null, null, null);
-            return;
-        });
 
     </script>
 </body>
