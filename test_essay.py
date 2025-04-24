@@ -114,12 +114,29 @@ async def start(request: Request):
 
     # 未使用の問題のみをフィルタリング
     available_questions = [q for q in all_questions if q['id'] not in used_question_ids]
-
-    # 未使用の問題が5問未満の場合は、すべての問題から選択
-    if len(available_questions) < 5:
-        available_questions = all_questions
-
     current_questions = random.sample(available_questions, min(5, len(available_questions)))
+
+    # current_questionsが空の場合に警告を表示
+    if len(current_questions) == 0:
+        return HTMLResponse(
+            content="""
+            <!DOCTYPE html>
+            <html lang="ja">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>エラー</title>
+            </head>
+            <body>
+                <script>
+                    alert("使用可能な問題がありません。used_questions.jsonを削除してください！");
+                </script>
+            </body>
+            </html>
+            """,
+            status_code=400
+        )
+
     current_question_index = 0
     start_time = time.time()
 
