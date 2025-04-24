@@ -24,6 +24,7 @@ current_question_index: int = 0
 start_time: float = 0.0
 used_question_ids: Set[str] = set()
 is_practice_mode: bool = False  # 練習モードかどうかを示すフラグ
+practice_question_count: int = 0  # 練習問題のカウンター
 
 
 def load_questions() -> List[Dict]:
@@ -100,13 +101,14 @@ class AnswerSubmission(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     """トップページ表示 - 練習問題を表示"""
-    global is_practice_mode
+    global is_practice_mode, practice_question_count
     is_practice_mode = True
+    practice_question_count = 0
     return templates.TemplateResponse(
         "quiz.html",
         {
             "request": request,
-            "question": {"id": "0", "question": "これは練習問題です", "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"]},
+            "question": {"id": "0-1", "question": "これは練習問題です", "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"]},
         }
     )
 
@@ -145,9 +147,13 @@ async def start(request: Request):
 @app.post("/submit")
 async def submit(submission: AnswerSubmission):
     """回答を受け取ってCSVに保存"""
-    global current_question_index
+    global current_question_index, practice_question_count
     if is_practice_mode:  # 練習モードの場合は保存しない
-        return JSONResponse({"practice": True})
+        practice_question_count += 1
+        return JSONResponse({
+            "practice": True,
+            "practiceQuestionNumber": practice_question_count
+        })
     save_answer(current_questions[current_question_index], submission.answer, submission.timeSpent)
     current_question_index += 1
 
@@ -159,6 +165,15 @@ async def submit(submission: AnswerSubmission):
 @app.get("/next", response_class=HTMLResponse)
 async def next_question(request: Request):
     """次の問題へリダイレクト"""
+    global practice_question_count
+    if is_practice_mode:
+        return templates.TemplateResponse(
+            "quiz.html",
+            {
+                "request": request,
+                "question": {"id": "0-2", "question": "この画面が表示されている時間がこの問題の解答時間です", "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"]},
+            }
+        )
     return templates.TemplateResponse(
         "quiz.html",
         {
