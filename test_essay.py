@@ -140,6 +140,8 @@ async def start(request: Request):
 async def submit(submission: AnswerSubmission):
     """回答を受け取ってCSVに保存"""
     global current_question_index
+    if is_practice_mode:  # 練習モードの場合は保存しない
+        return JSONResponse({"practice": True})
     save_answer(current_questions[current_question_index], submission.answer, submission.timeSpent)
     current_question_index += 1
 

@@ -73,13 +73,13 @@
     </style>
 </head>
 <body>
+    <div class="timer" id="timer" style="float: right;">5:00</div>
     <div class="question">
         <div class="question-number">問題{{ question.id }}</div>
         <div class="question-text">{{ question.question }}</div>
         <textarea class="answer-area" id="answer" placeholder="解答を入力してください" oninput="updateCharCount()"></textarea>
         <div class="char-count">文字数: <span id="charCount">0</span></div>
     </div>
-    <div class="timer" id="timer" style="float: right;">5:00</div>
     <button class="next-button" onclick="submitAnswer()" id="nextButton">次へ</button>
 
     <script>
