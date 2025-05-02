@@ -1,17 +1,17 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import List, Dict, Set
+import argparse
 import csv
+import json
+import os
 import random
 import time
 from datetime import datetime
-import argparse
-import json
-import os
+from typing import Dict, List, Set
 
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")

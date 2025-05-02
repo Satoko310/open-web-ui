@@ -1,12 +1,14 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+import logging
+import os
+
+import uvicorn
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
-import os
-from rag_system import RAGSystem
-import logging
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
+from rag_system import RAGSystem
 
 # ロギングの設定
 logging.basicConfig(level=logging.INFO)
@@ -83,5 +85,4 @@ async def query(question: Question):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=3000)
