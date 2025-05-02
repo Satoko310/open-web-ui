@@ -14,7 +14,7 @@ from rag_system import RAGSystem
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(debug=True)
 
 # CORSの設定
 app.add_middleware(
